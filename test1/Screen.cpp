@@ -62,7 +62,6 @@ void Screen::DrawSquare()
 			glVertex2i(DRAW_WIDTH, i*StepH);
 		}
 	glEnd();
-	glScaled(CUR_MULTIPLE,CUR_MULTIPLE, 1);
 
 	glFlush();
 }
@@ -103,12 +102,14 @@ void Screen::MouseButton(int button, int state, int x, int y) {
 	printf("BUTTON:%d  STATE:%d  X:%d  Y:%d\n", button, state, x, y);
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 		printf("S\n");
-		CUR_MULTIPLE = 1-0.1;
+		CUR_MULTIPLE *= 0.9;
+		glScaled(0.9, 0.9, 1);
 		::glutPostRedisplay();
 	}
 	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 		printf("L\n");
-		CUR_MULTIPLE = 1+0.1;
+		CUR_MULTIPLE *= 1.1;
+		glScaled(1.1, 1.1, 1);
 		::glutPostRedisplay();
 	}
 }
@@ -120,6 +121,37 @@ void Screen::MouseButtonCallback(int button, int state, int x, int y) {
 void Screen::SetupMouseButtonCallback() {
 	currentInstance = this;
 	::glutMouseFunc(MouseButtonCallback);
+}
+
+void Screen::SpecialKeyBoard(int key, int x, int y) {
+	if (key == GLUT_KEY_UP) {
+		glTranslatef(0.0, 1.0, 0.0);
+		::glutPostRedisplay();
+	}
+	else if(key == GLUT_KEY_DOWN)
+	{
+		glTranslatef(0.0, -1.0, 0.0);
+		::glutPostRedisplay();
+	}
+	else if(key == GLUT_KEY_LEFT)
+	{
+		glTranslatef(-1.0, 0.0, 0.0);
+		::glutPostRedisplay();
+	}
+	else if(key == GLUT_KEY_RIGHT)
+	{
+		glTranslatef(1.0, 0.0, 0.0);
+		::glutPostRedisplay();
+	}
+}
+
+void Screen::SpecialKeyBoardCallback(int key, int x, int y) {
+	currentInstance->SpecialKeyBoard(key, x, y);
+}
+
+void Screen::SetupSpecialKeyBoardCallback() {
+	currentInstance = this;
+	::glutSpecialFunc(SpecialKeyBoardCallback);
 }
 
 void Screen::DrawWindow(int argc, char** argv) {
@@ -134,5 +166,6 @@ void Screen::DrawWindow(int argc, char** argv) {
 	SetupDisplayCallback();
 	SetupReshapeCallback();
 	SetupMouseButtonCallback();
+	SetupSpecialKeyBoardCallback();
 	glutMainLoop();
 }
