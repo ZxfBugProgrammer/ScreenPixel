@@ -2,12 +2,10 @@
 #define __SCREEN__H__
 
 #include <GL/glut.h>
-#include "Constant.h"
 
 class Screen
 {
 public:
-	GLfloat ScreenPixelColor[MAXM][MAXN][3];
 
 	Screen();
 
@@ -32,6 +30,10 @@ public:
 private:
 	static Screen * currentInstance;
 	double CUR_MULTIPLE;
+	static const int MAXN = 50, MAXM = 50;
+	static const int DRAW_WIDTH = 600, DRAW_HEIGHT = 600;
+	static const int WINDOW_INITSIZE_WIDTH = 600, WINDOW_INITSIZE_HEIGHT = 600;
+	GLfloat ScreenPixelColor[MAXM][MAXN][3];
 };
 
 #endif // !__PIXEL__H__

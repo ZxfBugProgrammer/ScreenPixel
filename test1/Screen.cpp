@@ -2,6 +2,9 @@
 #include <cstdio>
 
 Screen * Screen::currentInstance;
+const int Screen::MAXN, Screen::MAXM;
+const int Screen::DRAW_WIDTH, Screen::DRAW_HEIGHT;
+const int Screen::WINDOW_INITSIZE_WIDTH, Screen::WINDOW_INITSIZE_HEIGHT;
 
 Screen::Screen() {
 	CUR_MULTIPLE = 1;
@@ -29,12 +32,12 @@ void Screen::InitGlut() {
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0.0, 300.0, 0.0, 300.0);
+	gluOrtho2D(0.0, WINDOW_INITSIZE_WIDTH, 0.0, WINDOW_INITSIZE_HEIGHT);
 }
 
 void Screen::DrawSquare()
 {
-	int StepW = WINDOW_WIDTH / MAXN, StepH = WINDOW_HEIGHT / MAXM;
+	int StepW = DRAW_WIDTH / MAXN, StepH = DRAW_HEIGHT / MAXM;
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBegin(GL_QUADS);
 		for (int i = 0; i < MAXM; i++) {
@@ -52,11 +55,11 @@ void Screen::DrawSquare()
 	glBegin(GL_LINES);
 		for (int i = 0; i <= MAXM; i++) {
 			glVertex2i(i*StepW, 0);
-			glVertex2i(i*StepW, WINDOW_HEIGHT);
+			glVertex2i(i*StepW, DRAW_HEIGHT);
 		}
 		for (int i = 0; i <= MAXN; i++) {
 			glVertex2i(0, i*StepH);
-			glVertex2i(WINDOW_WIDTH, i*StepH);
+			glVertex2i(DRAW_WIDTH, i*StepH);
 		}
 	glEnd();
 	glScaled(CUR_MULTIPLE,CUR_MULTIPLE, 1);
@@ -75,10 +78,15 @@ void Screen::DisplayCallback()
 }
 
 void Screen::ScreenChangeSize(GLsizei w, GLsizei h) {
-	glViewport(0, 0, 2*w, 2*h);
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0.0, w, 0.0, h);
+	if (h == 0)
+		h = 1;
+	if (w > h)
+		gluOrtho2D(0.0, 1.0* DRAW_WIDTH*w / h, 0.0, DRAW_HEIGHT);
+	else
+		gluOrtho2D(0.0, DRAW_WIDTH, 0.0, 1.0* DRAW_HEIGHT*h / w);
 }
 
 void Screen::SetupReshapeCallback() {
@@ -118,7 +126,7 @@ void Screen::DrawWindow(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(WINDOW_SIZE_WIDTH, WINDOW_SIZE_HEIGHT);
+	glutInitWindowSize(WINDOW_INITSIZE_WIDTH, WINDOW_INITSIZE_HEIGHT);
 	glutCreateWindow("This is a simulation window");
 
 	InitGlut();
