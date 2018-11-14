@@ -125,22 +125,22 @@ void Screen::SetupMouseButtonCallback() {
 
 void Screen::SpecialKeyBoard(int key, int x, int y) {
 	if (key == GLUT_KEY_UP) {
-		glTranslatef(0.0, 1.0, 0.0);
+		glTranslatef(0.0, 3.0, 0.0);
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_DOWN)
 	{
-		glTranslatef(0.0, -1.0, 0.0);
+		glTranslatef(0.0, -3.0, 0.0);
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_LEFT)
 	{
-		glTranslatef(-1.0, 0.0, 0.0);
+		glTranslatef(-3.0, 0.0, 0.0);
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_RIGHT)
 	{
-		glTranslatef(1.0, 0.0, 0.0);
+		glTranslatef(3.0, 0.0, 0.0);
 		::glutPostRedisplay();
 	}
 }
