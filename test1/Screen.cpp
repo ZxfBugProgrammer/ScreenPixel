@@ -3,11 +3,11 @@
 
 Screen * Screen::currentInstance;
 const int Screen::MAXN, Screen::MAXM;
-const int Screen::DRAW_WIDTH, Screen::DRAW_HEIGHT;
 const int Screen::WINDOW_INITSIZE_WIDTH, Screen::WINDOW_INITSIZE_HEIGHT;
 
 Screen::Screen() {
 	CUR_MULTIPLE = 1;
+	START_X = 0, START_Y = 0,STEP_WIDTH = 20,STEP_HEIGHT = 20;
 	int flag;
 	for (int i = 0; i < MAXM; i++) {
 		flag = i % 2;
@@ -37,16 +37,15 @@ void Screen::InitGlut() {
 
 void Screen::DrawSquare()
 {
-	int StepW = DRAW_WIDTH / MAXN, StepH = DRAW_HEIGHT / MAXM;
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBegin(GL_QUADS);
 		for (int i = 0; i < MAXM; i++) {
 			for (int j = 0; j < MAXN; j++) {
 				glColor3f(ScreenPixelColor[i][j][0], ScreenPixelColor[i][j][1], ScreenPixelColor[i][j][2]);
-				glVertex2i(j * StepW, i * StepH);
-				glVertex2i((j + 1) * StepW, i * StepH);
-				glVertex2i((j + 1) * StepW, (i + 1) * StepH);
-				glVertex2i(j * StepW, (i + 1) * StepH);
+				glVertex2d(START_X + j * STEP_WIDTH, START_Y + i * STEP_HEIGHT);
+				glVertex2d(START_X + (j + 1) * STEP_WIDTH, START_Y + i * STEP_HEIGHT);
+				glVertex2d(START_X + (j + 1) * STEP_WIDTH, START_Y + (i + 1) * STEP_HEIGHT);
+				glVertex2d(START_X + j * STEP_WIDTH, START_Y + (i + 1) * STEP_HEIGHT);
 			}
 		}
 	glEnd();
@@ -54,12 +53,12 @@ void Screen::DrawSquare()
 	glColor3f(0.0, 0.0, 0.0);
 	glBegin(GL_LINES);
 		for (int i = 0; i <= MAXM; i++) {
-			glVertex2i(i*StepW, 0);
-			glVertex2i(i*StepW, DRAW_HEIGHT);
+			glVertex2d(START_X + i*STEP_WIDTH, START_Y + 0);
+			glVertex2d(START_X + i * STEP_WIDTH, START_Y + MAXN * STEP_HEIGHT);
 		}
 		for (int i = 0; i <= MAXN; i++) {
-			glVertex2i(0, i*StepH);
-			glVertex2i(DRAW_WIDTH, i*StepH);
+			glVertex2d(START_X + 0, START_Y + i*STEP_HEIGHT);
+			glVertex2d(START_X + MAXM * STEP_WIDTH, START_Y + i * STEP_HEIGHT);
 		}
 	glEnd();
 
@@ -82,6 +81,9 @@ void Screen::ScreenChangeSize(GLsizei w, GLsizei h) {
 	glLoadIdentity();
 	if (h == 0)
 		h = 1;
+	NOW_WIDTH = w, NOW_HEIGHT = h;
+	GLdouble DRAW_WIDTH = START_X + MAXM * STEP_WIDTH;
+	GLdouble DRAW_HEIGHT = START_Y + MAXN * STEP_HEIGHT;
 	if (w > h)
 		gluOrtho2D(0.0, 1.0* DRAW_WIDTH*w / h, 0.0, DRAW_HEIGHT);
 	else
@@ -103,13 +105,15 @@ void Screen::MouseButton(int button, int state, int x, int y) {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 		printf("S\n");
 		CUR_MULTIPLE *= 0.9;
-		glScaled(0.9, 0.9, 1);
+		STEP_HEIGHT *= 0.9;
+		STEP_WIDTH *= 0.9;
 		::glutPostRedisplay();
 	}
 	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 		printf("L\n");
 		CUR_MULTIPLE *= 1.1;
-		glScaled(1.1, 1.1, 1);
+		STEP_HEIGHT *= 1.1;
+		STEP_WIDTH *= 1.1;
 		::glutPostRedisplay();
 	}
 }
@@ -123,24 +127,29 @@ void Screen::SetupMouseButtonCallback() {
 	::glutMouseFunc(MouseButtonCallback);
 }
 
+void Screen::MousePassiveMotion(GLint x, GLint y) {
+	y = NOW_HEIGHT - 1 - y;
+
+}
+
 void Screen::SpecialKeyBoard(int key, int x, int y) {
 	if (key == GLUT_KEY_UP) {
-		glTranslatef(0.0, 3.0, 0.0);
+		START_Y += 3.0;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_DOWN)
 	{
-		glTranslatef(0.0, -3.0, 0.0);
+		START_Y -= 3.0;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_LEFT)
 	{
-		glTranslatef(-3.0, 0.0, 0.0);
+		START_X -= 3.0;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_RIGHT)
 	{
-		glTranslatef(3.0, 0.0, 0.0);
+		START_X += 3.0;
 		::glutPostRedisplay();
 	}
 }
