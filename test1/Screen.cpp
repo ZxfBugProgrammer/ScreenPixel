@@ -35,6 +35,22 @@ void Screen::InitGlut() {
 	gluOrtho2D(0.0, WINDOW_INITSIZE_WIDTH, 0.0, WINDOW_INITSIZE_HEIGHT);
 }
 
+void Screen::GetWorldCoordinate(int &x, int &y) {
+	GLint viewport[4];
+	GLdouble modelview[16];
+	GLdouble projection[16];
+	GLfloat winX, winY, winZ;
+	GLdouble posX, posY, posZ;
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	winX = (float)x;
+	winY = (float)viewport[3] - (float)y;
+	glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+	gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+	x = posX, y = posY;
+}
+
 void Screen::DrawSquare()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -128,8 +144,29 @@ void Screen::SetupMouseButtonCallback() {
 }
 
 void Screen::MousePassiveMotion(GLint x, GLint y) {
-	y = NOW_HEIGHT - 1 - y;
+	//y = NOW_HEIGHT - 1 - y;
+	GetWorldCoordinate(x, y);
+	printf("x: %d y: %d\n", x, y);
+	if ((START_X <= x && x <= START_X + MAXM * STEP_WIDTH) &&
+		(START_Y <= y && y <= START_Y + MAXN * STEP_HEIGHT)) {
+		GLint n, m;
+		m = ((x - START_X) / STEP_WIDTH);
+		n = ((y - START_Y) / STEP_HEIGHT);
+		printf("m:%d n:%d\n", m, n);
+		ScreenPixelColor[n][m][0] = 1.0;
+		ScreenPixelColor[n][m][1] = 1.0;
+		ScreenPixelColor[n][m][2] = 1.0;
+		::glutPostRedisplay();
+	}
+}
 
+void Screen::MousePassiveMotionCallback(int x, int y) {
+	currentInstance->MousePassiveMotion(x,y);
+}
+
+void Screen::SetupMousePassiveMotionCallback() {
+	currentInstance = this;
+	::glutPassiveMotionFunc(MousePassiveMotionCallback);
 }
 
 void Screen::SpecialKeyBoard(int key, int x, int y) {
@@ -176,5 +213,6 @@ void Screen::DrawWindow(int argc, char** argv) {
 	SetupReshapeCallback();
 	SetupMouseButtonCallback();
 	SetupSpecialKeyBoardCallback();
+	SetupMousePassiveMotionCallback();
 	glutMainLoop();
 }

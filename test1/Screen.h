@@ -12,6 +12,7 @@ public:
 	void SetPixel(int x, int y, double cr, double cg, double cb);
 
 	void InitGlut();
+	void GetWorldCoordinate(int &x, int &y);
 
 	void DrawSquare();
 	static void DisplayCallback();
@@ -26,6 +27,8 @@ public:
 	void SetupMouseButtonCallback();
 
 	void MousePassiveMotion(GLint x, GLint y);
+	static void MousePassiveMotionCallback(GLint x, GLint y);
+	void SetupMousePassiveMotionCallback();
 
 	void SpecialKeyBoard(int key, int x, int y);
 	static void SpecialKeyBoardCallback(int key, int x, int y);
