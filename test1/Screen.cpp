@@ -1,5 +1,8 @@
 #include "Screen.h"
 #include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <algorithm>
 
 Screen * Screen::currentInstance;
 const int Screen::MAXN, Screen::MAXM;
@@ -8,16 +11,15 @@ const int Screen::WINDOW_INITSIZE_WIDTH, Screen::WINDOW_INITSIZE_HEIGHT;
 Screen::Screen() {
 	CUR_MULTIPLE = 1;
 	START_X = 0, START_Y = 0,STEP_WIDTH = 20,STEP_HEIGHT = 20;
-	int flag;
+	LINE_START_X = -1, LINE_START_Y = -1;
 	for (int i = 0; i < MAXM; i++) {
-		flag = i % 2;
 		for (int j = 0; j < MAXN; j++) {
 			ScreenPixelColor[i][j][0] = 1.0;
-			ScreenPixelColor[i][j][1] = flag;
-			ScreenPixelColor[i][j][2] = 0.0;
-			flag ^= 1;
+			ScreenPixelColor[i][j][1] = 1.0;
+			ScreenPixelColor[i][j][2] = 1.0;
 		}
 	}
+	memcpy(TempPixelColor, ScreenPixelColor, sizeof(ScreenPixelColor));
 }
 
 void Screen::SetPixel(int x, int y, double cr, double cg, double cb)
@@ -123,20 +125,27 @@ void Screen::ReshapeCallback(GLsizei w, GLsizei h)
 }
 
 void Screen::MouseButton(int button, int state, int x, int y) {
-	printf("BUTTON:%d  STATE:%d  X:%d  Y:%d\n", button, state, x, y);
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-		printf("S\n");
-		CUR_MULTIPLE *= 0.9;
-		STEP_HEIGHT *= 0.9;
-		STEP_WIDTH *= 0.9;
-		::glutPostRedisplay();
+		GetWorldCoordinate(x, y);
+		if ((START_X <= x && x <= START_X + MAXM * STEP_WIDTH) &&
+			(START_Y <= y && y <= START_Y + MAXN * STEP_HEIGHT)) {
+			if (LINE_START_X == -1 && LINE_START_Y == -1) {
+				GLint n, m;
+				m = ((x - START_X) / STEP_WIDTH);
+				n = ((y - START_Y) / STEP_HEIGHT);
+				LINE_START_X = m, LINE_START_Y = n;
+			}
+			else
+			{
+				memcpy(TempPixelColor, ScreenPixelColor, sizeof(ScreenPixelColor));
+				LINE_START_X = -1, LINE_START_Y = -1;
+			}
+			
+		}
 	}
 	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-		printf("L\n");
-		CUR_MULTIPLE *= 1.1;
-		STEP_HEIGHT *= 1.1;
-		STEP_WIDTH *= 1.1;
-		::glutPostRedisplay();
+		LINE_START_X = -1, LINE_START_Y = -1;
+		memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
 	}
 }
 
@@ -150,18 +159,16 @@ void Screen::SetupMouseButtonCallback() {
 }
 
 void Screen::MousePassiveMotion(GLint x, GLint y) {
-	//y = NOW_HEIGHT - 1 - y;
 	GetWorldCoordinate(x, y);
-	printf("x: %d y: %d\n", x, y);
 	if ((START_X <= x && x <= START_X + MAXM * STEP_WIDTH) &&
 		(START_Y <= y && y <= START_Y + MAXN * STEP_HEIGHT)) {
 		GLint n, m;
 		m = ((x - START_X) / STEP_WIDTH);
 		n = ((y - START_Y) / STEP_HEIGHT);
-		printf("m:%d n:%d\n", m, n);
-		ScreenPixelColor[n][m][0] = 1.0;
-		ScreenPixelColor[n][m][1] = 1.0;
-		ScreenPixelColor[n][m][2] = 1.0;
+		if (LINE_START_X != -1 && LINE_START_Y != -1) {
+			memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
+			DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
+		}
 		::glutPostRedisplay();
 	}
 }
@@ -195,6 +202,20 @@ void Screen::SpecialKeyBoard(int key, int x, int y) {
 		START_X += 3.0;
 		::glutPostRedisplay();
 	}
+	else if (key == GLUT_KEY_PAGE_UP)
+	{
+		CUR_MULTIPLE *= 1.1;
+		STEP_HEIGHT *= 1.1;
+		STEP_WIDTH *= 1.1;
+		::glutPostRedisplay();
+	}
+	else if(key == GLUT_KEY_PAGE_DOWN)
+	{
+		CUR_MULTIPLE *= 0.9;
+		STEP_HEIGHT *= 0.9;
+		STEP_WIDTH *= 0.9;
+		::glutPostRedisplay();
+	}
 }
 
 void Screen::SpecialKeyBoardCallback(int key, int x, int y) {
@@ -214,11 +235,27 @@ void Screen::DrawWindow(int argc, char** argv) {
 	glutCreateWindow("This is a simulation window");
 
 	InitGlut();
-	SetPixel(0, 0, 0.0, 0.0, 0.0);
 	SetupDisplayCallback();
 	SetupReshapeCallback();
 	SetupMouseButtonCallback();
 	SetupSpecialKeyBoardCallback();
 	SetupMousePassiveMotionCallback();
 	glutMainLoop();
+}
+
+void Screen::DrawLineDDA(int startx, int starty, int endx, int endy) {
+	GLfloat delta_x, delta_y, x = startx, y= starty;
+	int dx, dy, steps;
+	dx = endx - startx;
+	dy = endy - starty;
+	steps = std::max(abs(dx), abs(dy));
+	delta_x = (GLfloat)dx / (GLfloat)steps;
+	delta_y = (GLfloat)dy / (GLfloat)steps;
+	SetPixel(round(x), round(y), 0.0, 0.0, 0.0);
+	for (int i = 1; i <= steps; i++)
+	{
+		x += delta_x;
+		y += delta_y;
+		SetPixel(round(x), round(y), 0.0, 0.0, 0.0);
+	}
 }
