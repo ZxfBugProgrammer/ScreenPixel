@@ -276,11 +276,11 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 		{
 			SetPixel(x, y, 0.0, 0.0, 0.0);
 			x += stepX;
-			p += dy;
+			p += 2 * dy;
 			if (p >= 0)
 			{
 				y += stepY;
-				p -= dx;
+				p -= 2 * dx;
 			}
 		}
 	}
@@ -291,12 +291,13 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 		{
 			SetPixel(x, y, 0.0, 0.0, 0.0);
 			y += stepY;
-			p += dx;
+			p += 2 * dx;
 			if (p >= 0)
 			{
 				x += stepX;
-				p -= dy;
+				p -= 2 * dy;
 			}
 		}
 	}
 }
+
