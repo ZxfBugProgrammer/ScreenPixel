@@ -10,6 +10,7 @@ public:
 	Screen();
 
 	void SetPixel(int x, int y, double cr, double cg, double cb);
+	void GetPixel(int x, int y, double &cr, double &cg, double &cb);
 
 	void InitGlut();
 	void GetWorldCoordinate(int &x, int &y);

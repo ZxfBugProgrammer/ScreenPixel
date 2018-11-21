@@ -27,6 +27,12 @@ void Screen::SetPixel(int x, int y, double cr, double cg, double cb)
 	ScreenPixelColor[y][x][2] = cb;
 }
 
+void Screen::GetPixel(int x, int y, double &cr, double &cg, double &cb) {
+	cr = ScreenPixelColor[y][x][0];
+	cg = ScreenPixelColor[y][x][1];
+	cb = ScreenPixelColor[y][x][2];
+}
+
 void Screen::InitGlut() {
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 
