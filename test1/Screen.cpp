@@ -14,9 +14,9 @@ Screen::Screen() {
 	LINE_START_X = -1, LINE_START_Y = -1;
 	for (int i = 0; i < MAXM; i++) {
 		for (int j = 0; j < MAXN; j++) {
-			ScreenPixelColor[i][j][0] = 1.0;
-			ScreenPixelColor[i][j][1] = 1.0;
-			ScreenPixelColor[i][j][2] = 1.0;
+			ScreenPixelColor[i][j][0] = 153.0 / 255.0;
+			ScreenPixelColor[i][j][1] = 221.0 / 255.0;
+			ScreenPixelColor[i][j][2] = 255.0 / 255.0;
 		}
 	}
 	memcpy(TempPixelColor, ScreenPixelColor, sizeof(ScreenPixelColor));
@@ -74,7 +74,7 @@ void Screen::DrawSquare()
 		}
 	glEnd();
 
-	glColor3f(0.0, 0.0, 0.0);
+	glColor3f(0.74, 0.74, 0.74);
 	glBegin(GL_LINES);
 		for (int i = 0; i <= MAXM; i++) {
 			glVertex2d(START_X + i*STEP_WIDTH, START_Y + 0);
@@ -167,13 +167,14 @@ void Screen::MousePassiveMotion(GLint x, GLint y) {
 		n = ((y - START_Y) / STEP_HEIGHT);
 		if (LINE_START_X != -1 && LINE_START_Y != -1) {
 			memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
-			DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
+			//DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
+			DrawLineBresenham(LINE_START_X, LINE_START_Y, m, n);
 		}
 		::glutPostRedisplay();
 	}
 }
 
-void Screen::MousePassiveMotionCallback(int x, int y) {
+void Screen::MousePassiveMotionCallback(GLint x, GLint y) {
 	currentInstance->MousePassiveMotion(x,y);
 }
 
@@ -184,22 +185,22 @@ void Screen::SetupMousePassiveMotionCallback() {
 
 void Screen::SpecialKeyBoard(int key, int x, int y) {
 	if (key == GLUT_KEY_UP) {
-		START_Y += 3.0;
+		START_Y += 5.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_DOWN)
 	{
-		START_Y -= 3.0;
+		START_Y -= 5.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_LEFT)
 	{
-		START_X -= 3.0;
+		START_X -= 5.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_RIGHT)
 	{
-		START_X += 3.0;
+		START_X += 5.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if (key == GLUT_KEY_PAGE_UP)
@@ -252,10 +253,50 @@ void Screen::DrawLineDDA(int startx, int starty, int endx, int endy) {
 	delta_x = (GLfloat)dx / (GLfloat)steps;
 	delta_y = (GLfloat)dy / (GLfloat)steps;
 	SetPixel(round(x), round(y), 0.0, 0.0, 0.0);
-	for (int i = 1; i <= steps; i++)
+	for (int i = 0; i < steps; i++)
 	{
 		x += delta_x;
 		y += delta_y;
 		SetPixel(round(x), round(y), 0.0, 0.0, 0.0);
+	}
+}
+
+void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
+	int dx = abs(endx - startx),dy = abs(endy - starty);
+	int x = startx,y = starty,stepX = 1, stepY = 1;
+	if (startx > endx)
+		stepX = -1;
+	if (starty > endy)
+		stepY = -1;
+
+	if (dx > dy)
+	{
+		int p = dy * 2 - dx;
+		for (int i = 0; i <= dx; i++)
+		{
+			SetPixel(x, y, 0.0, 0.0, 0.0);
+			x += stepX;
+			p += dy;
+			if (p >= 0)
+			{
+				y += stepY;
+				p -= dx;
+			}
+		}
+	}
+	else
+	{
+		int p = 2 * dx - dy;
+		for (int i = 0; i <= dy; i++)
+		{
+			SetPixel(x, y, 0.0, 0.0, 0.0);
+			y += stepY;
+			p += dx;
+			if (p >= 0)
+			{
+				x += stepX;
+				p -= dy;
+			}
+		}
 	}
 }
