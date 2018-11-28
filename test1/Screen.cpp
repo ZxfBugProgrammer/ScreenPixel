@@ -167,8 +167,8 @@ void Screen::MousePassiveMotion(GLint x, GLint y) {
 		n = ((y - START_Y) / STEP_HEIGHT);
 		if (LINE_START_X != -1 && LINE_START_Y != -1) {
 			memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
-			//DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
-			DrawLineBresenham(LINE_START_X, LINE_START_Y, m, n);
+			DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
+			//DrawLineBresenham(LINE_START_X, LINE_START_Y, m, n);
 		}
 		::glutPostRedisplay();
 	}

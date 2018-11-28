@@ -50,7 +50,7 @@ private:
 	static const int MAXN = 80, MAXM = 80;
 	static const int WINDOW_INITSIZE_WIDTH = 600, WINDOW_INITSIZE_HEIGHT = 600;
 	GLfloat ScreenPixelColor[MAXM][MAXN][3];
-	GLfloat TempPixelColor[MAXN][MAXN][3];
+	GLfloat TempPixelColor[MAXM][MAXN][3];
 };
 
 #endif // !__SCREEN__H__
