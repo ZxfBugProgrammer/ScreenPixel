@@ -185,22 +185,22 @@ void Screen::SetupMousePassiveMotionCallback() {
 
 void Screen::SpecialKeyBoard(int key, int x, int y) {
 	if (key == GLUT_KEY_UP) {
-		START_Y += 5.0*CUR_MULTIPLE;
+		START_Y += 10.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_DOWN)
 	{
-		START_Y -= 5.0*CUR_MULTIPLE;
+		START_Y -= 10.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_LEFT)
 	{
-		START_X -= 5.0*CUR_MULTIPLE;
+		START_X -= 10.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_RIGHT)
 	{
-		START_X += 5.0*CUR_MULTIPLE;
+		START_X += 10.0*CUR_MULTIPLE;
 		::glutPostRedisplay();
 	}
 	else if (key == GLUT_KEY_PAGE_UP)
@@ -299,5 +299,9 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 			}
 		}
 	}
+}
+
+void Screen::DrawEllipse(int x, int y, int r) {
+
 }
 
