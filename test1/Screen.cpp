@@ -175,13 +175,18 @@ void Screen::MousePassiveMotion(GLint x, GLint y) {
 		n = ((y - START_Y) / STEP_HEIGHT);
 		if (LINE_START_X != -1 && LINE_START_Y != -1) {
 			memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
+
 			//DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
+
 			//DrawLineBresenham(LINE_START_X, LINE_START_Y, m, n);
-			int r = sqrt((m - LINE_START_X)*(m - LINE_START_X) + (n - LINE_START_Y)*(n - LINE_START_Y));
+
+			/*int r = sqrt((m - LINE_START_X)*(m - LINE_START_X) + (n - LINE_START_Y)*(n - LINE_START_Y));
 			//∑¿÷π‘ΩΩÁ
 			if (LINE_START_X + r < MAXN && LINE_START_X - r >= 0 && LINE_START_Y + r < MAXM && LINE_START_Y - r >= 0) {
 				DrawCircle(LINE_START_X, LINE_START_Y, r);
-			}
+			}*/
+			int rx = abs(m - LINE_START_X) / 2, ry = abs(n - LINE_START_Y) / 2, xc = (m + LINE_START_X) / 2, yc = (n + LINE_START_Y) / 2;
+			DrawEllipse(xc, yc, rx, ry);
 		}
 		::glutPostRedisplay();
 	}
@@ -350,7 +355,45 @@ void Screen::circlePlotPoints(int xc, int yc, Point pt) {
 	SetPixel(xc - pt.y, yc - pt.x, 0.0, 0.0, 0.0);
 }
 
-void Screen::DrawEllipse(int x, int y, int r) {
+void Screen::DrawEllipse(int xc, int yc, int rx,int ry) {
+	int rx2 = rx * rx, ry2 = ry * ry;
+	Point pt(0, ry);
+	int px = 0, py = 2 * rx2*pt.y, p = round(ry2 - (rx2*ry) + 0.25*rx2);
+	ellipsePlotPoints(xc, yc, pt);
+	while (px<py)
+	{
+		pt.x++;
+		px += 2 * ry2;
+		if (p < 0)
+			p += ry2 + px;
+		else
+		{
+			pt.y--;
+			py -= 2 * rx2;
+			p += ry2 + px - py;
+		}
+		ellipsePlotPoints(xc, yc, pt);
+	}
 
+	p = round(ry2*(pt.x + 0.5)*(pt.x + 0.5) + rx2 * (pt.y - 1)*(pt.y - 1) - rx2 * ry2);
+	while (pt.y > 0) {
+		pt.y--;
+		py -= 2 * rx2;
+		if (p > 0)
+			p += rx2 - py;
+		else
+		{
+			pt.x++;
+			px += 2 * ry2;
+			p += rx2 - py + px;
+		}
+		ellipsePlotPoints(xc, yc, pt);
+	}
 }
 
+void Screen::ellipsePlotPoints(int xc, int yc, Point pt) {
+	SetPixel(xc + pt.x, yc + pt.y, 0.0, 0.0, 0.0);
+	SetPixel(xc - pt.x, yc + pt.y, 0.0, 0.0, 0.0);
+	SetPixel(xc + pt.x, yc - pt.y, 0.0, 0.0, 0.0);
+	SetPixel(xc - pt.x, yc - pt.y, 0.0, 0.0, 0.0);
+}

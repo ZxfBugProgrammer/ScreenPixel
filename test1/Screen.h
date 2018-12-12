@@ -50,9 +50,10 @@ public:
 	void DrawLineDDA(int startx, int starty, int endx, int endy);
 	void DrawLineBresenham(int startx, int starty, int endx, int endy);
 
-	void DrawEllipse(int x, int y, int r);
 	void DrawCircle(int xc, int yc, int radius);
 	void circlePlotPoints(int xc, int yc, Point pt);
+	void DrawEllipse(int xc, int yc, int rx,int ry);
+	void ellipsePlotPoints(int xc, int yc, Point pt);
 
 private:
 	static Screen * currentInstance;
