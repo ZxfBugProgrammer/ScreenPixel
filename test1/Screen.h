@@ -3,6 +3,14 @@
 
 #include <GL/glut.h>
 
+struct Point
+{
+	double x, y;
+	Point(double tx = 0, double ty = 0) {
+		x = tx, y = ty;
+	}
+};
+
 class Screen
 {
 public:
@@ -11,6 +19,8 @@ public:
 
 	void SetPixel(int x, int y, double cr, double cg, double cb);
 	void GetPixel(int x, int y, double &cr, double &cg, double &cb);
+
+	void InitScreenPoint();
 
 	void InitGlut();
 	void GetWorldCoordinate(int &x, int &y);
@@ -41,6 +51,8 @@ public:
 	void DrawLineBresenham(int startx, int starty, int endx, int endy);
 
 	void DrawEllipse(int x, int y, int r);
+	void DrawCircle(int xc, int yc, int radius);
+	void circlePlotPoints(int xc, int yc, Point pt);
 
 private:
 	static Screen * currentInstance;
@@ -53,6 +65,9 @@ private:
 	static const int WINDOW_INITSIZE_WIDTH = 600, WINDOW_INITSIZE_HEIGHT = 600;
 	GLfloat ScreenPixelColor[MAXM][MAXN][3];
 	GLfloat TempPixelColor[MAXM][MAXN][3];
+
+	Point ScreenPoint[MAXM+10][MAXN+10];
+
 };
 
 #endif // !__SCREEN__H__

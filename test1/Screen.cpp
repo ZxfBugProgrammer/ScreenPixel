@@ -8,6 +8,12 @@ Screen * Screen::currentInstance;
 const int Screen::MAXN, Screen::MAXM;
 const int Screen::WINDOW_INITSIZE_WIDTH, Screen::WINDOW_INITSIZE_HEIGHT;
 
+void Screen::InitScreenPoint() {
+	for (int i = 0; i <= MAXM; i++)
+		for (int j = 0; j <= MAXN; j++)
+			ScreenPoint[i][j] = Point(START_X + j * STEP_WIDTH, START_Y + i * STEP_HEIGHT);
+}
+
 Screen::Screen() {
 	CUR_MULTIPLE = 1;
 	START_X = 0, START_Y = 0,STEP_WIDTH = 20,STEP_HEIGHT = 20;
@@ -19,6 +25,7 @@ Screen::Screen() {
 			ScreenPixelColor[i][j][2] = 255.0 / 255.0;
 		}
 	}
+	InitScreenPoint();
 	memcpy(TempPixelColor, ScreenPixelColor, sizeof(ScreenPixelColor));
 }
 
@@ -66,23 +73,24 @@ void Screen::DrawSquare()
 		for (int i = 0; i < MAXM; i++) {
 			for (int j = 0; j < MAXN; j++) {
 				glColor3f(ScreenPixelColor[i][j][0], ScreenPixelColor[i][j][1], ScreenPixelColor[i][j][2]);
-				glVertex2d(START_X + j * STEP_WIDTH, START_Y + i * STEP_HEIGHT);
-				glVertex2d(START_X + (j + 1) * STEP_WIDTH, START_Y + i * STEP_HEIGHT);
-				glVertex2d(START_X + (j + 1) * STEP_WIDTH, START_Y + (i + 1) * STEP_HEIGHT);
-				glVertex2d(START_X + j * STEP_WIDTH, START_Y + (i + 1) * STEP_HEIGHT);
+				glVertex2d(ScreenPoint[i][j].x, ScreenPoint[i][j].y);
+				glVertex2d(ScreenPoint[i][j + 1].x, ScreenPoint[i][j + 1].y);
+				glVertex2d(ScreenPoint[i + 1][j + 1].x, ScreenPoint[i + 1][j + 1].y);
+				glVertex2d(ScreenPoint[i + 1][j].x, ScreenPoint[i + 1][j].y);
 			}
 		}
 	glEnd();
 
+	
 	glColor3f(0.74, 0.74, 0.74);
 	glBegin(GL_LINES);
 		for (int i = 0; i <= MAXM; i++) {
-			glVertex2d(START_X + i*STEP_WIDTH, START_Y + 0);
-			glVertex2d(START_X + i * STEP_WIDTH, START_Y + MAXN * STEP_HEIGHT);
+			glVertex2d(ScreenPoint[i][0].x, ScreenPoint[i][0].y);
+			glVertex2d(ScreenPoint[i][MAXN].x, ScreenPoint[i][MAXN].y);
 		}
 		for (int i = 0; i <= MAXN; i++) {
-			glVertex2d(START_X + 0, START_Y + i*STEP_HEIGHT);
-			glVertex2d(START_X + MAXM * STEP_WIDTH, START_Y + i * STEP_HEIGHT);
+			glVertex2d(ScreenPoint[0][i].x, ScreenPoint[0][i].y);
+			glVertex2d(ScreenPoint[MAXM][i].x, ScreenPoint[MAXM][i].y);
 		}
 	glEnd();
 
@@ -106,8 +114,8 @@ void Screen::ScreenChangeSize(GLsizei w, GLsizei h) {
 	if (h == 0)
 		h = 1;
 	NOW_WIDTH = w, NOW_HEIGHT = h;
-	GLdouble DRAW_WIDTH = START_X + MAXM * STEP_WIDTH;
-	GLdouble DRAW_HEIGHT = START_Y + MAXN * STEP_HEIGHT;
+	GLdouble DRAW_WIDTH = START_X + MAXN * STEP_WIDTH;
+	GLdouble DRAW_HEIGHT = START_Y + MAXM * STEP_HEIGHT;
 	if (w > h)
 		gluOrtho2D(0.0, 1.0* DRAW_WIDTH*w / h, 0.0, DRAW_HEIGHT);
 	else
@@ -167,8 +175,13 @@ void Screen::MousePassiveMotion(GLint x, GLint y) {
 		n = ((y - START_Y) / STEP_HEIGHT);
 		if (LINE_START_X != -1 && LINE_START_Y != -1) {
 			memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
-			DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
+			//DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
 			//DrawLineBresenham(LINE_START_X, LINE_START_Y, m, n);
+			int r = sqrt((m - LINE_START_X)*(m - LINE_START_X) + (n - LINE_START_Y)*(n - LINE_START_Y));
+			//∑¿÷π‘ΩΩÁ
+			if (LINE_START_X + r <= MAXN && LINE_START_X - r >= 0 && LINE_START_Y + r <= MAXM && LINE_START_Y - r >= 0) {
+				DrawCircle(LINE_START_X, LINE_START_Y, r);
+			}
 		}
 		::glutPostRedisplay();
 	}
@@ -186,21 +199,25 @@ void Screen::SetupMousePassiveMotionCallback() {
 void Screen::SpecialKeyBoard(int key, int x, int y) {
 	if (key == GLUT_KEY_UP) {
 		START_Y += 10.0*CUR_MULTIPLE;
+		InitScreenPoint();
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_DOWN)
 	{
 		START_Y -= 10.0*CUR_MULTIPLE;
+		InitScreenPoint();
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_LEFT)
 	{
 		START_X -= 10.0*CUR_MULTIPLE;
+		InitScreenPoint();
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_RIGHT)
 	{
 		START_X += 10.0*CUR_MULTIPLE;
+		InitScreenPoint();
 		::glutPostRedisplay();
 	}
 	else if (key == GLUT_KEY_PAGE_UP)
@@ -208,6 +225,7 @@ void Screen::SpecialKeyBoard(int key, int x, int y) {
 		CUR_MULTIPLE *= 1.1;
 		STEP_HEIGHT *= 1.1;
 		STEP_WIDTH *= 1.1;
+		InitScreenPoint();
 		::glutPostRedisplay();
 	}
 	else if(key == GLUT_KEY_PAGE_DOWN)
@@ -215,6 +233,7 @@ void Screen::SpecialKeyBoard(int key, int x, int y) {
 		CUR_MULTIPLE *= 0.9;
 		STEP_HEIGHT *= 0.9;
 		STEP_WIDTH *= 0.9;
+		InitScreenPoint();
 		::glutPostRedisplay();
 	}
 }
@@ -299,6 +318,36 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 			}
 		}
 	}
+}
+
+void Screen::DrawCircle(int xc, int yc, int radius) {
+	int p = 1 - radius;
+	Point circPt(0, radius);
+	
+	circlePlotPoints(xc, yc, circPt);
+	while (circPt.x<circPt.y)
+	{
+		circPt.x++;
+		if (p < 0)
+			p += 2 * circPt.x + 1;
+		else
+		{
+			circPt.y--;
+			p += 2 * (circPt.x - circPt.y) + 1;
+		}
+		circlePlotPoints(xc, yc, circPt);
+	}
+}
+
+void Screen::circlePlotPoints(int xc, int yc, Point pt) {
+	SetPixel(xc + pt.x, yc + pt.y, 0.0, 0.0, 0.0);
+	SetPixel(xc - pt.x, yc + pt.y, 0.0, 0.0, 0.0);
+	SetPixel(xc + pt.x, yc - pt.y, 0.0, 0.0, 0.0);
+	SetPixel(xc - pt.x, yc - pt.y, 0.0, 0.0, 0.0);
+	SetPixel(xc + pt.y, yc + pt.x, 0.0, 0.0, 0.0);
+	SetPixel(xc - pt.y, yc + pt.x, 0.0, 0.0, 0.0);
+	SetPixel(xc + pt.y, yc - pt.x, 0.0, 0.0, 0.0);
+	SetPixel(xc - pt.y, yc - pt.x, 0.0, 0.0, 0.0);
 }
 
 void Screen::DrawEllipse(int x, int y, int r) {
