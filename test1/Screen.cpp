@@ -179,7 +179,7 @@ void Screen::MousePassiveMotion(GLint x, GLint y) {
 			//DrawLineBresenham(LINE_START_X, LINE_START_Y, m, n);
 			int r = sqrt((m - LINE_START_X)*(m - LINE_START_X) + (n - LINE_START_Y)*(n - LINE_START_Y));
 			//∑¿÷π‘ΩΩÁ
-			if (LINE_START_X + r <= MAXN && LINE_START_X - r >= 0 && LINE_START_Y + r <= MAXM && LINE_START_Y - r >= 0) {
+			if (LINE_START_X + r < MAXN && LINE_START_X - r >= 0 && LINE_START_Y + r < MAXM && LINE_START_Y - r >= 0) {
 				DrawCircle(LINE_START_X, LINE_START_Y, r);
 			}
 		}
