@@ -2,14 +2,10 @@
 #define __SCREEN__H__
 
 #include <GL/glut.h>
+#include "BaseStruct.h"
+#include "LinkList.h"
+#include <vector>
 
-struct Point
-{
-	double x, y;
-	Point(double tx = 0, double ty = 0) {
-		x = tx, y = ty;
-	}
-};
 
 class Screen
 {
@@ -55,6 +51,11 @@ public:
 	void DrawEllipse(int xc, int yc, int rx,int ry);
 	void ellipsePlotPoints(int xc, int yc, Point pt);
 
+	void LineFill(int s, int e,int valY);
+	void FillActiveEdgeTable(const LinkList& ActiveEdgeTable);
+	void UpdateActiveEdgeTable(LinkList& ActiveEdgeTable);
+	void PolygonFill(std::vector<IntPoint> vec);
+
 private:
 	static Screen * currentInstance;
 	double CUR_MULTIPLE;
@@ -69,6 +70,7 @@ private:
 
 	Point ScreenPoint[MAXM+10][MAXN+10];
 
+	std::vector<IntPoint> vec;
 };
 
 #endif // !__SCREEN__H__

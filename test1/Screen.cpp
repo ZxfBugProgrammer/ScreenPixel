@@ -16,7 +16,7 @@ void Screen::InitScreenPoint() {
 
 Screen::Screen() {
 	CUR_MULTIPLE = 1;
-	START_X = 0, START_Y = 0,STEP_WIDTH = 20,STEP_HEIGHT = 20;
+	START_X = 0, START_Y = 0, STEP_WIDTH = 20, STEP_HEIGHT = 20;
 	LINE_START_X = -1, LINE_START_Y = -1;
 	for (int i = 0; i < MAXM; i++) {
 		for (int j = 0; j < MAXN; j++) {
@@ -70,28 +70,27 @@ void Screen::DrawSquare()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBegin(GL_QUADS);
-		for (int i = 0; i < MAXM; i++) {
-			for (int j = 0; j < MAXN; j++) {
-				glColor3f(ScreenPixelColor[i][j][0], ScreenPixelColor[i][j][1], ScreenPixelColor[i][j][2]);
-				glVertex2d(ScreenPoint[i][j].x, ScreenPoint[i][j].y);
-				glVertex2d(ScreenPoint[i][j + 1].x, ScreenPoint[i][j + 1].y);
-				glVertex2d(ScreenPoint[i + 1][j + 1].x, ScreenPoint[i + 1][j + 1].y);
-				glVertex2d(ScreenPoint[i + 1][j].x, ScreenPoint[i + 1][j].y);
-			}
+	for (int i = 0; i < MAXM; i++) {
+		for (int j = 0; j < MAXN; j++) {
+			glColor3f(ScreenPixelColor[i][j][0], ScreenPixelColor[i][j][1], ScreenPixelColor[i][j][2]);
+			glVertex2d(ScreenPoint[i][j].x, ScreenPoint[i][j].y);
+			glVertex2d(ScreenPoint[i][j + 1].x, ScreenPoint[i][j + 1].y);
+			glVertex2d(ScreenPoint[i + 1][j + 1].x, ScreenPoint[i + 1][j + 1].y);
+			glVertex2d(ScreenPoint[i + 1][j].x, ScreenPoint[i + 1][j].y);
 		}
+	}
 	glEnd();
 
-	
 	glColor3f(0.74, 0.74, 0.74);
 	glBegin(GL_LINES);
-		for (int i = 0; i <= MAXM; i++) {
-			glVertex2d(ScreenPoint[i][0].x, ScreenPoint[i][0].y);
-			glVertex2d(ScreenPoint[i][MAXN].x, ScreenPoint[i][MAXN].y);
-		}
-		for (int i = 0; i <= MAXN; i++) {
-			glVertex2d(ScreenPoint[0][i].x, ScreenPoint[0][i].y);
-			glVertex2d(ScreenPoint[MAXM][i].x, ScreenPoint[MAXM][i].y);
-		}
+	for (int i = 0; i <= MAXM; i++) {
+		glVertex2d(ScreenPoint[i][0].x, ScreenPoint[i][0].y);
+		glVertex2d(ScreenPoint[i][MAXN].x, ScreenPoint[i][MAXN].y);
+	}
+	for (int i = 0; i <= MAXN; i++) {
+		glVertex2d(ScreenPoint[0][i].x, ScreenPoint[0][i].y);
+		glVertex2d(ScreenPoint[MAXM][i].x, ScreenPoint[MAXM][i].y);
+	}
 	glEnd();
 
 	glFlush();
@@ -129,7 +128,7 @@ void Screen::SetupReshapeCallback() {
 
 void Screen::ReshapeCallback(GLsizei w, GLsizei h)
 {
-	currentInstance->ScreenChangeSize(w,h);
+	currentInstance->ScreenChangeSize(w, h);
 }
 
 void Screen::MouseButton(int button, int state, int x, int y) {
@@ -137,10 +136,10 @@ void Screen::MouseButton(int button, int state, int x, int y) {
 		GetWorldCoordinate(x, y);
 		if ((START_X <= x && x <= START_X + MAXM * STEP_WIDTH) &&
 			(START_Y <= y && y <= START_Y + MAXN * STEP_HEIGHT)) {
+			GLint n, m;
+			m = ((x - START_X) / STEP_WIDTH);
+			n = ((y - START_Y) / STEP_HEIGHT);
 			if (LINE_START_X == -1 && LINE_START_Y == -1) {
-				GLint n, m;
-				m = ((x - START_X) / STEP_WIDTH);
-				n = ((y - START_Y) / STEP_HEIGHT);
 				LINE_START_X = m, LINE_START_Y = n;
 			}
 			else
@@ -148,17 +147,21 @@ void Screen::MouseButton(int button, int state, int x, int y) {
 				memcpy(TempPixelColor, ScreenPixelColor, sizeof(ScreenPixelColor));
 				LINE_START_X = -1, LINE_START_Y = -1;
 			}
-			
+			SetPixel(m, n ,0.0, 0.0, 0.0);
+			vec.push_back(IntPoint(m, n));
+			PolygonFill(vec);
+			::glutPostRedisplay();
 		}
 	}
 	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 		LINE_START_X = -1, LINE_START_Y = -1;
 		memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
+		vec.clear();
 	}
 }
 
 void Screen::MouseButtonCallback(int button, int state, int x, int y) {
-	currentInstance->MouseButton(button,state,x,y);
+	currentInstance->MouseButton(button, state, x, y);
 }
 
 void Screen::SetupMouseButtonCallback() {
@@ -175,25 +178,30 @@ void Screen::MousePassiveMotion(GLint x, GLint y) {
 		n = ((y - START_Y) / STEP_HEIGHT);
 		if (LINE_START_X != -1 && LINE_START_Y != -1) {
 			memcpy(ScreenPixelColor, TempPixelColor, sizeof(TempPixelColor));
-
+			
+			//!!!!画线算法
 			//DrawLineDDA(LINE_START_X, LINE_START_Y, m, n);
-
 			//DrawLineBresenham(LINE_START_X, LINE_START_Y, m, n);
 
+			//!!!!画圆算法
 			/*int r = sqrt((m - LINE_START_X)*(m - LINE_START_X) + (n - LINE_START_Y)*(n - LINE_START_Y));
 			//防止越界
 			if (LINE_START_X + r < MAXN && LINE_START_X - r >= 0 && LINE_START_Y + r < MAXM && LINE_START_Y - r >= 0) {
 				DrawCircle(LINE_START_X, LINE_START_Y, r);
 			}*/
-			int rx = abs(m - LINE_START_X) / 2, ry = abs(n - LINE_START_Y) / 2, xc = (m + LINE_START_X) / 2, yc = (n + LINE_START_Y) / 2;
-			DrawEllipse(xc, yc, rx, ry);
+
+			//!!!!画椭圆算法
+			/*int rx = abs(m - LINE_START_X) / 2, ry = abs(n - LINE_START_Y) / 2;
+			int xc = (m + LINE_START_X) / 2, yc = (n + LINE_START_Y) / 2;
+			DrawEllipse(xc, yc, rx, ry);*/
+
 		}
 		::glutPostRedisplay();
 	}
 }
 
 void Screen::MousePassiveMotionCallback(GLint x, GLint y) {
-	currentInstance->MousePassiveMotion(x,y);
+	currentInstance->MousePassiveMotion(x, y);
 }
 
 void Screen::SetupMousePassiveMotionCallback() {
@@ -207,19 +215,19 @@ void Screen::SpecialKeyBoard(int key, int x, int y) {
 		InitScreenPoint();
 		::glutPostRedisplay();
 	}
-	else if(key == GLUT_KEY_DOWN)
+	else if (key == GLUT_KEY_DOWN)
 	{
 		START_Y -= 10.0*CUR_MULTIPLE;
 		InitScreenPoint();
 		::glutPostRedisplay();
 	}
-	else if(key == GLUT_KEY_LEFT)
+	else if (key == GLUT_KEY_LEFT)
 	{
 		START_X -= 10.0*CUR_MULTIPLE;
 		InitScreenPoint();
 		::glutPostRedisplay();
 	}
-	else if(key == GLUT_KEY_RIGHT)
+	else if (key == GLUT_KEY_RIGHT)
 	{
 		START_X += 10.0*CUR_MULTIPLE;
 		InitScreenPoint();
@@ -233,7 +241,7 @@ void Screen::SpecialKeyBoard(int key, int x, int y) {
 		InitScreenPoint();
 		::glutPostRedisplay();
 	}
-	else if(key == GLUT_KEY_PAGE_DOWN)
+	else if (key == GLUT_KEY_PAGE_DOWN)
 	{
 		CUR_MULTIPLE *= 0.9;
 		STEP_HEIGHT *= 0.9;
@@ -264,30 +272,30 @@ void Screen::DrawWindow(int argc, char** argv) {
 	SetupReshapeCallback();
 	SetupMouseButtonCallback();
 	SetupSpecialKeyBoardCallback();
-	SetupMousePassiveMotionCallback();
+	//SetupMousePassiveMotionCallback();
 	glutMainLoop();
 }
 
 void Screen::DrawLineDDA(int startx, int starty, int endx, int endy) {
-	GLfloat delta_x, delta_y, x = startx, y= starty;
+	GLfloat delta_x, delta_y, x = startx, y = starty;
 	int dx, dy, steps;
 	dx = endx - startx;
 	dy = endy - starty;
 	steps = std::max(abs(dx), abs(dy));
 	delta_x = (GLfloat)dx / (GLfloat)steps;
 	delta_y = (GLfloat)dy / (GLfloat)steps;
-	SetPixel(round(x), round(y), 0.0, 0.0, 0.0);
+	SetPixel(round(x), round(y), 1.0, 1.0, 1.0);
 	for (int i = 0; i < steps; i++)
 	{
 		x += delta_x;
 		y += delta_y;
-		SetPixel(round(x), round(y), 0.0, 0.0, 0.0);
+		SetPixel(round(x), round(y), 1.0, 1.0, 1.0);
 	}
 }
 
 void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
-	int dx = abs(endx - startx),dy = abs(endy - starty);
-	int x = startx,y = starty,stepX = 1, stepY = 1;
+	int dx = abs(endx - startx), dy = abs(endy - starty);
+	int x = startx, y = starty, stepX = 1, stepY = 1;
 	if (startx > endx)
 		stepX = -1;
 	if (starty > endy)
@@ -298,7 +306,7 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 		int p = dy * 2 - dx;
 		for (int i = 0; i <= dx; i++)
 		{
-			SetPixel(x, y, 0.0, 0.0, 0.0);
+			SetPixel(x, y, 1.0, 1.0, 1.0);
 			x += stepX;
 			p += 2 * dy;
 			if (p >= 0)
@@ -313,7 +321,7 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 		int p = 2 * dx - dy;
 		for (int i = 0; i <= dy; i++)
 		{
-			SetPixel(x, y, 0.0, 0.0, 0.0);
+			SetPixel(x, y, 1.0, 1.0, 1.0);
 			y += stepY;
 			p += 2 * dx;
 			if (p >= 0)
@@ -328,9 +336,9 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 void Screen::DrawCircle(int xc, int yc, int radius) {
 	int p = 1 - radius;
 	Point circPt(0, radius);
-	
+
 	circlePlotPoints(xc, yc, circPt);
-	while (circPt.x<circPt.y)
+	while (circPt.x < circPt.y)
 	{
 		circPt.x++;
 		if (p < 0)
@@ -355,12 +363,12 @@ void Screen::circlePlotPoints(int xc, int yc, Point pt) {
 	SetPixel(xc - pt.y, yc - pt.x, 0.0, 0.0, 0.0);
 }
 
-void Screen::DrawEllipse(int xc, int yc, int rx,int ry) {
+void Screen::DrawEllipse(int xc, int yc, int rx, int ry) {
 	int rx2 = rx * rx, ry2 = ry * ry;
 	Point pt(0, ry);
 	int px = 0, py = 2 * rx2*pt.y, p = round(ry2 - (rx2*ry) + 0.25*rx2);
 	ellipsePlotPoints(xc, yc, pt);
-	while (px<py)
+	while (px < py)
 	{
 		pt.x++;
 		px += 2 * ry2;
@@ -396,4 +404,103 @@ void Screen::ellipsePlotPoints(int xc, int yc, Point pt) {
 	SetPixel(xc - pt.x, yc + pt.y, 0.0, 0.0, 0.0);
 	SetPixel(xc + pt.x, yc - pt.y, 0.0, 0.0, 0.0);
 	SetPixel(xc - pt.x, yc - pt.y, 0.0, 0.0, 0.0);
+}
+
+void Screen::LineFill(int s, int e, int valY)
+{
+	for (int i = s; i <= e; i++)
+		SetPixel(i, valY, 0.0, 0.0, 0.0);
+}
+
+void Screen::FillActiveEdgeTable(const LinkList & ActiveEdgeTable) {
+	LNode *pa = ActiveEdgeTable.firstNode.next;
+	while (pa) {
+		LineFill(pa->data.x, pa->next->data.x, ActiveEdgeTable.val);
+		pa = pa->next->next;
+	}
+}
+
+void Screen::UpdateActiveEdgeTable(LinkList & ActiveEdgeTable) {
+	puts("~~~~~~~~~~~~");
+	ActiveEdgeTable.val++;
+	LNode *p = ActiveEdgeTable.firstNode.next, *pre = &ActiveEdgeTable.firstNode;
+	while (p) {
+		if (p->data.y < ActiveEdgeTable.val) {
+			pre->next = p->next;
+			free(p);
+			p = pre->next;
+			continue;
+		}
+		p->data.cur += 2*p->data.deltax;
+		while (abs(p->data.cur) > p->data.deltay) {
+			p->data.cur -= (p->data.deltax > 0 ? 2 * p->data.deltay : -2 * p->data.deltay);
+			p->data.x += (p->data.deltax > 0 ? 1 : -1);
+		}
+		printf("%d\n", p->data.x);
+
+		pre = p;
+		p = p->next;
+	}
+}
+
+void Screen::PolygonFill(std::vector<IntPoint> vec) {
+	//如果无法构成多边形，返回
+	if (vec.size() <= 2) {
+		return;
+	}
+
+	//将定点向量处理为边向量 计算出每条边的斜率倒数，去除水平线
+	std::vector<Edge> ed;
+	int tlen = (int)vec.size();
+	int maxVal = -(int)1e9, minVal = (int)1e9;
+	for (int i = 0; i < tlen; i++) {
+		int nextPoint = (i + 1) % tlen;
+		if (vec[i].y == vec[nextPoint].y) continue;
+		int heighterPoint = vec[i].y > vec[nextPoint].y ? i : nextPoint;
+		int lowerPoint = i + nextPoint - heighterPoint;
+		ed.push_back(Edge(vec[i], vec[nextPoint],
+			(vec[heighterPoint].y - vec[lowerPoint].y), (vec[heighterPoint].x - vec[lowerPoint].x)));
+		maxVal = std::max(vec[i].y, maxVal);
+		minVal = std::min(vec[i].y, minVal);
+		printf("!!!%d x:%d y:%d\n", i, vec[i].x, vec[i].y);
+	}
+
+	//将边分离开 
+	tlen = (int)ed.size();
+	for (int i = 0; i < tlen; i++) {
+		int nextEdge = (i + 1) % tlen;
+		IntPoint sharePoint = ed[i].e;
+		if ((ed[i].s.y - sharePoint.y)*(ed[nextEdge].e.y - sharePoint.y) < 0) {
+			ed[i].s.y < ed[nextEdge].e.y ? ed[i].e.y-- : ed[nextEdge].s.y--;
+		}
+	}
+
+	//初始化排序边表
+	LinkList* SortedEdgeTable = new LinkList[maxVal - minVal + 10];
+	for (int i = 0; i <= (maxVal - minVal); i++)
+		SortedEdgeTable[i].val = i+minVal;
+	for (int i = 0; i < tlen; i++) {
+		IntPoint minPoint = ed[i].s.y < ed[i].e.y ? ed[i].s : ed[i].e;
+		IntPoint maxPoint = ed[i].s.y < ed[i].e.y ? ed[i].e : ed[i].s;
+		int pos = minPoint.y - minVal;
+		::LinkListInsert(SortedEdgeTable[pos], Data(maxPoint.y, minPoint.x, ed[i].deltay, ed[i].deltax));
+	}
+
+	//初始化活化边表
+	LinkList ActiveEdgeTable;
+	ActiveEdgeTable.val = minVal;
+
+	for (int i = 0; i <= (maxVal - minVal); i++) {
+		//合并活化边表与相应的排序边表
+		::LinkListMerge(ActiveEdgeTable, SortedEdgeTable[i]);
+		//填充当前扫描线确定的多边形的内部区域
+		FillActiveEdgeTable(ActiveEdgeTable);
+		//更新活化边表的X值
+		UpdateActiveEdgeTable(ActiveEdgeTable);
+	}
+
+	for (int i = 0; i < tlen; i++) {
+		int nextPoint = (i + 1) % tlen;
+		DrawLineBresenham(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
+	}
 }
