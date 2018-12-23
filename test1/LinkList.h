@@ -8,10 +8,11 @@ struct Data
 		y = ty, x = tx, deltax = tdeltax, deltay = tdeltay;
 		cur = 0;
 	}
-
+	
+	//×¢ÒâÒªĞ±ÂÊÅÅĞò
 	bool operator < (const Data &t) const {
 		if (x == t.x)
-			return y < t.y;
+			return 1.0*deltax/deltay < 1.0*t.deltax/t.deltay;
 		return x < t.x;
 	}
 };

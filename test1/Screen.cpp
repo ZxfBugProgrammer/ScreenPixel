@@ -147,8 +147,20 @@ void Screen::MouseButton(int button, int state, int x, int y) {
 				memcpy(TempPixelColor, ScreenPixelColor, sizeof(ScreenPixelColor));
 				LINE_START_X = -1, LINE_START_Y = -1;
 			}
-			SetPixel(m, n ,0.0, 0.0, 0.0);
+			SetPixel(m, n ,1.0, 1.0, 1.0);
 			vec.push_back(IntPoint(m, n));
+
+			/* //一组测试数据
+			//0 x:22 y : 33
+			//1 x : 8 y : 20
+			//2 x : 14 y : 12
+			//3 x : 23 y : 18
+			//4 x : 31 y : 12
+			vec.push_back(IntPoint(22, 33));
+			vec.push_back(IntPoint(8, 20));
+			vec.push_back(IntPoint(14, 12));
+			vec.push_back(IntPoint(23, 18));
+			vec.push_back(IntPoint(31, 12));*/
 			PolygonFill(vec);
 			::glutPostRedisplay();
 		}
@@ -304,7 +316,7 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 	if (dx > dy)
 	{
 		int p = dy * 2 - dx;
-		for (int i = 0; i <= dx; i++)
+		for (int i = 0; i < dx; i++)
 		{
 			SetPixel(x, y, 1.0, 1.0, 1.0);
 			x += stepX;
@@ -319,7 +331,7 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 	else
 	{
 		int p = 2 * dx - dy;
-		for (int i = 0; i <= dy; i++)
+		for (int i = 0; i < dy; i++)
 		{
 			SetPixel(x, y, 1.0, 1.0, 1.0);
 			y += stepY;
@@ -413,15 +425,16 @@ void Screen::LineFill(int s, int e, int valY)
 }
 
 void Screen::FillActiveEdgeTable(const LinkList & ActiveEdgeTable) {
+	puts("~~~~~~~~~~~~");
 	LNode *pa = ActiveEdgeTable.firstNode.next;
 	while (pa) {
 		LineFill(pa->data.x, pa->next->data.x, ActiveEdgeTable.val);
+		printf("%d - %d\n", pa->data.x, pa->next->data.x);
 		pa = pa->next->next;
 	}
 }
 
 void Screen::UpdateActiveEdgeTable(LinkList & ActiveEdgeTable) {
-	puts("~~~~~~~~~~~~");
 	ActiveEdgeTable.val++;
 	LNode *p = ActiveEdgeTable.firstNode.next, *pre = &ActiveEdgeTable.firstNode;
 	while (p) {
@@ -432,11 +445,21 @@ void Screen::UpdateActiveEdgeTable(LinkList & ActiveEdgeTable) {
 			continue;
 		}
 		p->data.cur += 2*p->data.deltax;
-		while (abs(p->data.cur) > p->data.deltay) {
-			p->data.cur -= (p->data.deltax > 0 ? 2 * p->data.deltay : -2 * p->data.deltay);
-			p->data.x += (p->data.deltax > 0 ? 1 : -1);
+		//区分正负
+		if (p->data.deltax > 0) {
+			while (p->data.cur > p->data.deltay) {
+				p->data.cur -= 2 * p->data.deltay;
+				p->data.x += 1;
+			}
 		}
-		printf("%d\n", p->data.x);
+		else
+		{
+			while (-p->data.cur > p->data.deltay) {
+				p->data.cur += 2 * p->data.deltay;
+				p->data.x -= 1;
+			}
+		}
+		
 
 		pre = p;
 		p = p->next;
@@ -466,12 +489,25 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 	}
 
 	//将边分离开 
+
+	//TODO 注意分离边的时候调整X
 	tlen = (int)ed.size();
 	for (int i = 0; i < tlen; i++) {
 		int nextEdge = (i + 1) % tlen;
 		IntPoint sharePoint = ed[i].e;
 		if ((ed[i].s.y - sharePoint.y)*(ed[nextEdge].e.y - sharePoint.y) < 0) {
-			ed[i].s.y < ed[nextEdge].e.y ? ed[i].e.y-- : ed[nextEdge].s.y--;
+			if (ed[i].s.y < ed[nextEdge].e.y) {
+				ed[i].e.y--;
+				if (abs(ed[i].deltax) > abs(ed[i].deltay)) {
+					ed[i].e.x += (ed[i].deltax > 0 ? -1 : 1);
+				}
+			}
+			else{
+				ed[nextEdge].s.y--;
+				if (abs(ed[nextEdge].deltax) > abs(ed[nextEdge].deltay)) {
+					ed[nextEdge].s.x += (ed[nextEdge].deltax > 0 ? -1 : 1);
+				}
+			}
 		}
 	}
 
@@ -498,9 +534,9 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 		//更新活化边表的X值
 		UpdateActiveEdgeTable(ActiveEdgeTable);
 	}
-
+	tlen = (int)vec.size();
 	for (int i = 0; i < tlen; i++) {
 		int nextPoint = (i + 1) % tlen;
-		DrawLineBresenham(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
+		DrawLineDDA(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
 	}
 }
