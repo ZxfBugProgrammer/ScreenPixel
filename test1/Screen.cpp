@@ -306,43 +306,41 @@ void Screen::DrawLineDDA(int startx, int starty, int endx, int endy) {
 }
 
 void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
-	int dx = abs(endx - startx), dy = abs(endy - starty);
 	int x = startx, y = starty, stepX = 1, stepY = 1;
+	int dx = abs(endx - startx),dy = abs(endy - starty);
+	int twoDx = 2 * dx, twoDy = 2 * dy, twoDyMinusDx = 2 * (dy - dx), twoDxMinusDy = 2 * (dx - dy);
 	if (startx > endx)
 		stepX = -1;
 	if (starty > endy)
 		stepY = -1;
-
-	if (dx > dy)
-	{
-		int p = dy * 2 - dx;
-		SetPixel(x, y, 1.0, 1.0, 1.0);
-		for (int i = 0; i < dx; i++)
-		{
-			x += stepX;
-			p += 2 * dy;
-			if (p >= 0)
-			{
-				y += stepY;
-				p -= 2 * dx;
+	int p;
+	if (dy<=dx) {
+		SetPixel(x, y, 1, 1, 1);
+		p = 2 * dy - dx;
+		while (x != endx) {
+			if (p < 0) {
+				p += twoDy;
 			}
-			SetPixel(x, y, 1.0, 1.0, 1.0);
+			else {
+				y += stepY;
+				p += twoDyMinusDx;
+			}
+			x += stepX;
+			SetPixel(x, y, 1, 1, 1);
 		}
 	}
-	else
-	{
-		int p = 2 * dx - dy;
-		SetPixel(x, y, 1.0, 1.0, 1.0);
-		for (int i = 0; i < dy; i++)
-		{
-			y += stepY;
-			p += 2 * dx;
-			if (p >= 0)
-			{
+	else {
+		p = 2 * dx - dy;
+		SetPixel(x, y, 1, 1, 1);
+		while (y != endy) {
+			if (p < 0)
+				p += twoDx;
+			else {
 				x += stepX;
-				p -= 2 * dy;
+				p += twoDxMinusDy;
 			}
-			SetPixel(x, y, 1.0, 1.0, 1.0);
+			y += stepY;
+			SetPixel(x, y, 1, 1, 1);
 		}
 	}
 }
@@ -423,15 +421,15 @@ void Screen::ellipsePlotPoints(int xc, int yc, Point pt) {
 void Screen::LineFill(int s, int e, int valY)
 {
 	for (int i = s; i <= e; i++)
-		SetPixel(i, valY, 0.0, 0.0, 0.0);
+		SetPixel(i, valY, 246.0 / 255, 176.0 / 255, 108.0 / 255);
 }
 
 void Screen::FillActiveEdgeTable(const LinkList & ActiveEdgeTable) {
-	//puts("~~~~~~~~~~~~");
+	puts("~~~~~~~~~~~~");
 	LNode *pa = ActiveEdgeTable.firstNode.next;
 	while (pa) {
 		LineFill(pa->data.x, pa->next->data.x, ActiveEdgeTable.val);
-		//printf("%d - %d\n", pa->data.x, pa->next->data.x);
+		printf("%d - %d\n", pa->data.x, pa->next->data.x);
 		pa = pa->next->next;
 	}
 }
@@ -486,7 +484,7 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 			(vec[heighterPoint].y - vec[lowerPoint].y), (vec[heighterPoint].x - vec[lowerPoint].x)));
 		maxVal = std::max(vec[i].y, maxVal);
 		minVal = std::min(vec[i].y, minVal);
-		//printf("!!!%d x:%d y:%d\n", i, vec[i].x, vec[i].y);
+		printf("!!!%d x:%d y:%d\n", i, vec[i].x, vec[i].y);
 	}
 	//½«±ß·ÖÀë¿ª 
 
@@ -542,7 +540,6 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 		
 	}
 
-	for (int i = 0; i < tlen; i++) {
+	for (int i = 0; i < tlen; i++)
 		SetPixel(vec[i].x, vec[i].y, 1, 0, 1);
-	}
 }

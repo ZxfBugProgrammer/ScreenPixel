@@ -5,6 +5,7 @@
 #include "BaseStruct.h"
 #include "LinkList.h"
 #include <vector>
+#include <algorithm>
 
 
 class Screen
