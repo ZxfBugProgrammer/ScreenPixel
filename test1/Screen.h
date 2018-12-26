@@ -63,7 +63,7 @@ private:
 	GLint NOW_MOUSE_X, NOW_MOUSE_Y,LINE_START_X,LINE_START_Y;
 	GLdouble START_X, START_Y,STEP_WIDTH,STEP_HEIGHT;
 
-	static const int MAXN = 50, MAXM = 50;
+	static const int MAXN = 30, MAXM = 30;
 	static const int WINDOW_INITSIZE_WIDTH = 600, WINDOW_INITSIZE_HEIGHT = 600;
 	GLfloat ScreenPixelColor[MAXM][MAXN][3];
 	GLfloat TempPixelColor[MAXM][MAXN][3];

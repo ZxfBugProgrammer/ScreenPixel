@@ -293,7 +293,7 @@ void Screen::DrawLineDDA(int startx, int starty, int endx, int endy) {
 	int dx, dy, steps;
 	dx = endx - startx;
 	dy = endy - starty;
-	steps = std::max(abs(dx), abs(dy));
+	steps = std::max(fabs(dx), fabs(dy));
 	delta_x = (GLfloat)dx / (GLfloat)steps;
 	delta_y = (GLfloat)dy / (GLfloat)steps;
 	SetPixel(round(x), round(y), 1.0, 1.0, 1.0);
@@ -316,9 +316,9 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 	if (dx > dy)
 	{
 		int p = dy * 2 - dx;
+		SetPixel(x, y, 1.0, 1.0, 1.0);
 		for (int i = 0; i < dx; i++)
 		{
-			SetPixel(x, y, 1.0, 1.0, 1.0);
 			x += stepX;
 			p += 2 * dy;
 			if (p >= 0)
@@ -326,14 +326,15 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 				y += stepY;
 				p -= 2 * dx;
 			}
+			SetPixel(x, y, 1.0, 1.0, 1.0);
 		}
 	}
 	else
 	{
 		int p = 2 * dx - dy;
+		SetPixel(x, y, 1.0, 1.0, 1.0);
 		for (int i = 0; i < dy; i++)
 		{
-			SetPixel(x, y, 1.0, 1.0, 1.0);
 			y += stepY;
 			p += 2 * dx;
 			if (p >= 0)
@@ -341,6 +342,7 @@ void Screen::DrawLineBresenham(int startx, int starty, int endx, int endy) {
 				x += stepX;
 				p -= 2 * dy;
 			}
+			SetPixel(x, y, 1.0, 1.0, 1.0);
 		}
 	}
 }
@@ -425,11 +427,11 @@ void Screen::LineFill(int s, int e, int valY)
 }
 
 void Screen::FillActiveEdgeTable(const LinkList & ActiveEdgeTable) {
-	puts("~~~~~~~~~~~~");
+	//puts("~~~~~~~~~~~~");
 	LNode *pa = ActiveEdgeTable.firstNode.next;
 	while (pa) {
 		LineFill(pa->data.x, pa->next->data.x, ActiveEdgeTable.val);
-		printf("%d - %d\n", pa->data.x, pa->next->data.x);
+		//printf("%d - %d\n", pa->data.x, pa->next->data.x);
 		pa = pa->next->next;
 	}
 }
@@ -460,7 +462,6 @@ void Screen::UpdateActiveEdgeTable(LinkList & ActiveEdgeTable) {
 			}
 		}
 		
-
 		pre = p;
 		p = p->next;
 	}
@@ -485,12 +486,11 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 			(vec[heighterPoint].y - vec[lowerPoint].y), (vec[heighterPoint].x - vec[lowerPoint].x)));
 		maxVal = std::max(vec[i].y, maxVal);
 		minVal = std::min(vec[i].y, minVal);
-		printf("!!!%d x:%d y:%d\n", i, vec[i].x, vec[i].y);
+		//printf("!!!%d x:%d y:%d\n", i, vec[i].x, vec[i].y);
 	}
-
 	//将边分离开 
 
-	//TODO 注意分离边的时候调整X
+	//注意分离边的时候调整X
 	tlen = (int)ed.size();
 	for (int i = 0; i < tlen; i++) {
 		int nextEdge = (i + 1) % tlen;
@@ -537,6 +537,12 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 	tlen = (int)vec.size();
 	for (int i = 0; i < tlen; i++) {
 		int nextPoint = (i + 1) % tlen;
-		DrawLineDDA(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
+		//DrawLineDDA(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
+		DrawLineBresenham(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
+		
+	}
+
+	for (int i = 0; i < tlen; i++) {
+		SetPixel(vec[i].x, vec[i].y, 1, 0, 1);
 	}
 }
