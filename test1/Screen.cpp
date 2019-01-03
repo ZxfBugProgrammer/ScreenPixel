@@ -147,20 +147,28 @@ void Screen::MouseButton(int button, int state, int x, int y) {
 				memcpy(TempPixelColor, ScreenPixelColor, sizeof(ScreenPixelColor));
 				LINE_START_X = -1, LINE_START_Y = -1;
 			}
-			SetPixel(m, n ,1.0, 1.0, 1.0);
+			SetPixel(m, n , 1, 0, 1);
 			vec.push_back(IntPoint(m, n));
 
-			/* //一组测试数据
-			//0 x:22 y : 33
-			//1 x : 8 y : 20
-			//2 x : 14 y : 12
-			//3 x : 23 y : 18
-			//4 x : 31 y : 12
-			vec.push_back(IntPoint(22, 33));
-			vec.push_back(IntPoint(8, 20));
-			vec.push_back(IntPoint(14, 12));
-			vec.push_back(IntPoint(23, 18));
-			vec.push_back(IntPoint(31, 12));*/
+			///两组测试数据
+			//!!!0 x:24 y : 24
+			//!!!1 x : 14 y : 25
+			//!!!2 x : 6 y : 22
+			//!!!3 x : 13 y : 12
+			//!!!4 x : 20 y : 18
+			//!!!5 x : 27 y : 12
+
+			//!!!0 x:15 y : 26
+			//!!!1 x : 8 y : 21
+			//!!!2 x : 13 y : 13
+
+			//!!!0 x:21 y : 15
+			//!!!1 x : 13 y : 4
+			//!!!2 x : 27 y : 5
+
+			/*vec.push_back(IntPoint(21, 15));
+			vec.push_back(IntPoint(13, 4));
+			vec.push_back(IntPoint(27, 5));*/
 			PolygonFill(vec);
 			::glutPostRedisplay();
 		}
@@ -447,13 +455,15 @@ void Screen::UpdateActiveEdgeTable(LinkList & ActiveEdgeTable) {
 		p->data.cur += 2*p->data.deltax;
 		//区分正负
 		if (p->data.deltax > 0) {
-			while (p->data.cur > p->data.deltay) {
+			//注意等号！！！  四舍五入！！
+			while (p->data.cur >= p->data.deltay) {
 				p->data.cur -= 2 * p->data.deltay;
 				p->data.x += 1;
 			}
 		}
 		else
-		{
+		{   
+			//通过减法得到的不能加 = 
 			while (-p->data.cur > p->data.deltay) {
 				p->data.cur += 2 * p->data.deltay;
 				p->data.x -= 1;
@@ -486,9 +496,8 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 		minVal = std::min(vec[i].y, minVal);
 		printf("!!!%d x:%d y:%d\n", i, vec[i].x, vec[i].y);
 	}
-	//将边分离开 
 
-	//注意分离边的时候调整X
+	//将边分离开 
 	tlen = (int)ed.size();
 	for (int i = 0; i < tlen; i++) {
 		int nextEdge = (i + 1) % tlen;
@@ -496,15 +505,9 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 		if ((ed[i].s.y - sharePoint.y)*(ed[nextEdge].e.y - sharePoint.y) < 0) {
 			if (ed[i].s.y < ed[nextEdge].e.y) {
 				ed[i].e.y--;
-				if (abs(ed[i].deltax) > abs(ed[i].deltay)) {
-					ed[i].e.x += (ed[i].deltax > 0 ? -1 : 1);
-				}
 			}
 			else{
 				ed[nextEdge].s.y--;
-				if (abs(ed[nextEdge].deltax) > abs(ed[nextEdge].deltay)) {
-					ed[nextEdge].s.x += (ed[nextEdge].deltax > 0 ? -1 : 1);
-				}
 			}
 		}
 	}
@@ -514,8 +517,9 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 	for (int i = 0; i <= (maxVal - minVal); i++)
 		SortedEdgeTable[i].val = i+minVal;
 	for (int i = 0; i < tlen; i++) {
-		IntPoint minPoint = ed[i].s.y < ed[i].e.y ? ed[i].s : ed[i].e;
-		IntPoint maxPoint = ed[i].s.y < ed[i].e.y ? ed[i].e : ed[i].s;
+		//应该用原来的y值比较
+		IntPoint minPoint = ed[i].tempsy < ed[i].tempey ? ed[i].s : ed[i].e;
+		IntPoint maxPoint = ed[i].tempsy < ed[i].tempey ? ed[i].e : ed[i].s;
 		int pos = minPoint.y - minVal;
 		::LinkListInsert(SortedEdgeTable[pos], Data(maxPoint.y, minPoint.x, ed[i].deltay, ed[i].deltax));
 	}
@@ -535,9 +539,9 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 	tlen = (int)vec.size();
 	for (int i = 0; i < tlen; i++) {
 		int nextPoint = (i + 1) % tlen;
-		//DrawLineDDA(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
-		DrawLineBresenham(vec[i].x, vec[i].y, vec[nextPoint].x, vec[nextPoint].y);
-		
+		DrawLineDDA(vec[nextPoint].x, vec[nextPoint].y, vec[i].x, vec[i].y);
+		//DrawLineBresenham(vec[nextPoint].x, vec[nextPoint].y,vec[i].x, vec[i].y);
+		//Bresenham画线好像还有一些问题
 	}
 
 	for (int i = 0; i < tlen; i++)

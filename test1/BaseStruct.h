@@ -17,8 +17,8 @@ struct IntPoint
 
 struct Edge {
 	IntPoint s, e;
-	int deltax, deltay;
+	int deltax, deltay, tempsy, tempey;
 	Edge(IntPoint ts = IntPoint(0, 0), IntPoint te = IntPoint(0, 0), int tdeltay = 0, int tdeltax = 0) {
-		s = ts, e = te, deltax = tdeltax, deltay = tdeltay;
+		s = ts, e = te, deltax = tdeltax, deltay = tdeltay, tempsy = ts.y, tempey = te.y;
 	}
 };
