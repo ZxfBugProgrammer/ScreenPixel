@@ -463,7 +463,7 @@ void Screen::UpdateActiveEdgeTable(LinkList & ActiveEdgeTable) {
 		}
 		else
 		{   
-			//通过减法得到的不能加 = 
+			//通过减法得到的不能加 = ！！！！！！！！！！！！！！！！！！！！！！！！
 			while (-p->data.cur > p->data.deltay) {
 				p->data.cur += 2 * p->data.deltay;
 				p->data.x -= 1;
@@ -517,7 +517,7 @@ void Screen::PolygonFill(std::vector<IntPoint> vec) {
 	for (int i = 0; i <= (maxVal - minVal); i++)
 		SortedEdgeTable[i].val = i+minVal;
 	for (int i = 0; i < tlen; i++) {
-		//应该用原来的y值比较
+		//应该用原来的y值比较！！！！！！！！！！！！！！！！！
 		IntPoint minPoint = ed[i].tempsy < ed[i].tempey ? ed[i].s : ed[i].e;
 		IntPoint maxPoint = ed[i].tempsy < ed[i].tempey ? ed[i].e : ed[i].s;
 		int pos = minPoint.y - minVal;
